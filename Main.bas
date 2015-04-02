@@ -51,6 +51,20 @@ Sub mainSub()
         Dim filePath As String
         Dim dumpFile As Integer: dumpFile = 1
         Dim specRowIndex As Integer: specRowIndex = 17
+        Dim excludeFromDCI As String: excludeFromDCI = "1"
+        
+        'set up an array which is used to look up the type of field
+        Dim fieldTypes(1 To 20) As String
+        fieldTypes(1) = "Single Response Dictionary"
+        fieldTypes(2) = "Multiple Response Dictionary"
+        fieldTypes(3) = "Staff"
+        fieldTypes(4) = "Free Text"
+        fieldTypes(5) = "Scrolling Free Text"
+        fieldTypes(10) = "Date"
+        fieldTypes(12) = "Label"
+        fieldTypes(15) = "Service Code"
+        fieldTypes(17) = "Time"
+        
         
         'get the filepath of the selected file
         filePath = Application.FileDialog(msoFileDialogOpen).SelectedItems(1)
@@ -70,25 +84,46 @@ Sub mainSub()
                 Range("B13") = getValue(textLine)
             ElseIf (InStr(textLine, "<optionid>")) Then
                 Range("C13") = getValue(textLine)
-            ElseIf (InStr(textLine, "<promptorder>")) Then
-                Cells(specRowIndex, "A") = getValue(textLine)
-            ElseIf (InStr(textLine, "<fieldtype>")) Then
-                Cells(specRowIndex, "B") = getValue(textLine)
-            ElseIf (InStr(textLine, "<fieldlabel>")) Then
-                Cells(specRowIndex, "D") = getValue(textLine)
-            ElseIf (InStr(textLine, "<initrequired>")) Then
-                Cells(specRowIndex, "F") = getValue(textLine)
-            ElseIf (InStr(textLine, "</promptdata>")) Then
-                specRowIndex = specRowIndex + 1
+            ElseIf (InStr(textLine, "<excludefromdci>")) Then
+                excludeFromDCI = getValue(textLine)
             End If
             
+            If (excludeFromDCI = "0") Then
+                If (InStr(textLine, "<promptorder>")) Then
+                    Cells(specRowIndex, "A") = getValue(textLine)
+                ElseIf (InStr(textLine, "<fieldtype>")) Then
+                    Cells(specRowIndex, "B") = fieldTypes(CInt(getValue(textLine)))
+                    'Cells(specRowIndex, "B") = getValue(textLine)
+                ElseIf (InStr(textLine, "<fieldlabel>")) Then
+                    Cells(specRowIndex, "D") = getValue(textLine)
+                ElseIf (InStr(textLine, "<initrequired>")) Then
+                    Cells(specRowIndex, "F") = getValue(textLine)
+                ElseIf (InStr(textLine, "</promptdata>")) Then
+                    specRowIndex = specRowIndex + 1
+                End If
+            End If
             
-        Loop
+        Loop 'next line
         
         'close the file because we have to
         Close #dumpFile
         
     End If
+    
+End Sub
+
+
+'This will reset the spec sheet, clearing all fields that are automatically filled by main()
+Sub clearFields()
+
+    ActiveSheet.Unprotect
+    
+    Range("B9").ClearContents
+    Range("A13:C13").ClearContents
+    Range(Cells(17, "A"), Cells(ActiveSheet.UsedRange.Rows.Count + 1, ActiveSheet.UsedRange.Columns.Count)).ClearContents
+    
+    ActiveSheet.Protect
+    
     
 End Sub
 
