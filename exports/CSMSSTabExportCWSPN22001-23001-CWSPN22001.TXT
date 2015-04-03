@@ -1,0 +1,12 @@
+<optiondata>
+<eligibleforexport></eligibleforexport>
+<entitydatabase>CWSTABLE</entitydatabase>
+<optionid>CWSPN22001</optionid>
+<versionnumber></versionnumber>
+<Menu>
+<Application>Avatar CWS</Application>
+<Description>IOP/PHP Daily Arrival Note</Description>
+<FullMenuPath>Progress Notes[->]PrairieCare Progress Notes</FullMenuPath>
+<SubModule></SubModule>
+</Menu>
+</optiondata>
