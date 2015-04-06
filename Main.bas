@@ -147,6 +147,13 @@ Sub clearFields()
     Range("A13:C13").ClearContents
     Range(Cells(17, "A"), Cells(ActiveSheet.UsedRange.Rows.Count + 1, ActiveSheet.UsedRange.Columns.Count)).ClearContents
     
+    'delete previous IntegrationTest sheets if they exist, do nothing if they don't.
+    On Error Resume Next
+        Application.DisplayAlerts = False
+        Sheets("IntegrationTest").Delete
+        Application.DisplayAlerts = True
+    On Error GoTo 0
+    
     'ActiveSheet.Protect
     
 End Sub
@@ -155,7 +162,11 @@ End Sub
 ' are working properly.
 Sub generateTestScript()
     
-    'delete the existing sheets that this macro created if they exists, do nothing if they don't.
+    'turn off screen updating so the screen does look all flashy and stupid, also, macros just run faster
+    ' when they don't have to render all of the actions they take.
+    Application.ScreenUpdating = False
+    
+    'delete previous IntegrationTest sheets if they exist, do nothing if they don't.
     On Error Resume Next
         Application.DisplayAlerts = False
         Sheets("IntegrationTest").Delete
@@ -164,6 +175,11 @@ Sub generateTestScript()
     
     'add a worksheet for the integration test script
     Worksheets.Add(After:=Worksheets(Worksheets.Count)).Name = "IntegrationTest"
+    
+    'copy the Netsmart logo so the sheet looks nice :)
+    'for some reason the picture is called "picture 3" instead of logically naming it as the damn filename
+    Sheets("FormSpec").Shapes("Picture 3").Copy
+    Sheets("IntegrationTest").PasteSpecial
     
     'set up header stuffs
     Cells(5, "B") = "Test case:"
@@ -182,7 +198,6 @@ Sub generateTestScript()
     Range("B5:B13").Font.Bold = True
     Range("B5:B13").Font.Color = RGB(255, 255, 255)
 
-    
     'set up column header for test table
     Cells(16, "A") = "Step"
     Cells(16, "B") = "Action"
@@ -205,19 +220,85 @@ Sub generateTestScript()
     Columns("E").ColumnWidth = 4
     Columns("F").ColumnWidth = 4
     Columns("G").ColumnWidth = 30
-
-    Dim testIndex As Integer: testIndex = 0
-
-    'loop through each row in the used form spec area
-    For Each Row In Range(Cells(17, "A"), Cells(100, "A"))
-        testIndex = testIndex + 1
+    
+    'loop through each row until we find a null cell
+    Dim i As Integer: i = 1
+    Do While Not IsEmpty(Sheets("FormSpec").Cells(i + 16, "A"))
+    
+        'set some instance variable so we don't have to retrieve these values twelve times
+        Dim rowIndex As Integer: rowIndex = i + 16
+        Dim rowFieldType As String: rowFieldType = Sheets("FormSpec").Cells(rowIndex, "B")
+        Dim rowFieldLabel As String: rowFieldLabel = Sheets("FormSpec").Cells(rowIndex, "C")
+        Dim action As Range: Set action = Sheets("IntegrationTest").Cells(rowIndex, "B")
+        Dim expectedResult As Range: Set expectedResult = Sheets("IntegrationTest").Cells(rowIndex, "C")
         
-        'Sheets("FormSpec").Cells(16 + testIndex, "A")
+        Sheets("IntegrationTest").Cells(rowIndex, "A").Value = i
+        action.WrapText = True
+        expectedResult.WrapText = True
         
-        Cells(16 + testIndex, "A") = testIndex
+        'check the fieldType if the row in FromSpec
+        If (rowFieldType = "Single Response Dictionary") Then
+            'set the action and expected value for the integration test
+            action.Value = "Select one option from " + rowFieldLabel
+            expectedResult.Value = rowFieldLabel + " will be recorded in the form."
+            
+        ElseIf (rowFieldType = "Multiple Response Dictionary") Then
+            action.Value = "Select multiple options from " + rowFieldLabel
+            expectedResult.Value = rowFieldLabel + " will be recorded in the form."
+            
+        ElseIf (rowFieldType = "Staff") Then
+            action.Value = "Select a staff member from " + rowFieldLabel
+            expectedResult.Value = rowFieldLabel + " will be recorded in the form."
+            
+        ElseIf (rowFieldType = "Free Text") Then
+            action.Value = "Type in a value for " + rowFieldLabel
+            expectedResult.Value = rowFieldLabel + " will be recorded in the form."
+            
+        ElseIf (rowFieldType = "Scrolling Free Text") Then
+            action.Value = "Type in a value for " + rowFieldLabel
+            expectedResult.Value = rowFieldLabel + " will be recorded in the form."
+            
+        ElseIf (rowFieldType = "Axis I") Then
+            action.Value = "I don't know what this is" + rowFieldLabel
+            expectedResult.Value = rowFieldLabel + " will be recorded in the form."
+            
+        ElseIf (rowFieldType = "Axis II") Then
+            action.Value = "I don't know what this is" + rowFieldLabel
+            expectedResult.Value = rowFieldLabel + " will be recorded in the form."
+            
+        ElseIf (rowFieldType = "Axis III") Then
+            action.Value = "I don't know what this is" + rowFieldLabel
+            expectedResult.Value = rowFieldLabel + " will be recorded in the form."
+            
+        ElseIf (rowFieldType = "Date") Then
+            action.Value = "Select a date for " + rowFieldLabel
+            expectedResult.Value = rowFieldLabel + " will be recorded in the form."
+            
+        ElseIf (rowFieldType = "Service Code") Then
+            action.Value = "Select a service code from " + rowFieldLabel
+            expectedResult.Value = rowFieldLabel + " will be recorded in the form."
+            
+        ElseIf (rowFieldType = "Time") Then
+            action.Value = "Enter a time for " + rowFieldLabel
+            expectedResult.Value = rowFieldLabel + " will be recorded in the form."
+            
+        ElseIf (rowFieldType = "Sign") Then
+            action.Value = "I don't know what this is" + rowFieldLabel
+            expectedResult.Value = rowFieldLabel + " will be recorded in the form."
+            
+        End If
         
-    Next Row
+        i = i + 1
+    Loop
+    
     
     
 End Sub
+
+
+
+
+
+
+
 
